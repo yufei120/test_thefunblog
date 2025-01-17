@@ -1,11 +1,254 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from '../layouts/Layout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+
 ---
 
 <Layout>
-	<Welcome />
+  <Header />
+  <div class="box">
+    <div class="box-btn">
+      <button class="new-post-btn" onclick="openPopup()">New Post</button>
+    </div>
+
+    <div class="popup" id="popup">
+      <h2>New Post</h2>
+      
+      <form id="popupForm" onsubmit="event.preventDefault();savePost()" >
+        <label for="title">Title:</label>
+        <input type="text" name="posttitle" id="title" required />
+        <label for="content">Content:</label>
+        <textarea id="content" name="postcontent" required></textarea>
+        <div class="popup-buttons">
+          <button type="button" onclick="closePopup()">Cancel</button>
+          <button type="submit" onclick="savePopup()">Save</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="posts" class="posts-container"></div>
+  </div>
 </Layout>
+<Footer />
+
+<script client:load>
+  let posts = []
+  let editingPostId = null
+
+  function openPopup() {
+    document.getElementById('popup').style.display = 'block'
+    editingPostId = null // Reset editingPostId when opening the popup for a new post
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none'
+  }
+
+  function savePost() {
+    const title = document.getElementById('title').value.trim()
+    const content = document.getElementById('content').value.trim()
+    if (title !== '' && content !== '') {
+      if (editingPostId !== null) {
+        // Edit existing post
+        const post = posts.find((p) => p.id === editingPostId)
+        if (post) {
+          post.title = title
+          post.content = content
+        }
+      } else {
+        // Add new post
+        const post = {
+          id: Date.now(), // 
+          title: title,
+          content: content,
+          createdAt: new Date()
+            .toLocaleString('en-US', { hour12: true })
+            .replace(',', ' at'),
+        }
+        posts.push(post)
+      }
+      renderPosts()
+      document.getElementById('title').value = ''
+      document.getElementById('content').value = ''
+      closePopup()
+    }
+  }
+
+  function renderPosts() {
+    const postsContainer = document.getElementById('posts')
+    postsContainer.innerHTML = ''
+    posts.forEach((post, index) => {
+      const postElement = document.createElement('div')
+      postElement.className = 'post'
+      postElement.innerHTML = `
+      <h1 style="display: flex; justify-content: space-between; align-items: center;">
+        ${post.title} 
+        <span style="font-size: 0.5em; color: #666;">${post.createdAt}</span>
+      </h1>
+      <div style="display: flex; justify-content: space-between;">
+        <div style="width: 80%; text-align: left;">${post.content}</div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button onclick="editPost(${post.id})" style="padding: 5px 10px; background-color: #b978de; color: white; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+          <button onclick="deletePost(${post.id})" style="padding: 5px 10px; background-color: #ccc; color: black; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+        </div>
+      </div>
+      <hr style="margin-top: 10px; border: none; border-top: 1px solid #ccc;">
+    `
+      postsContainer.appendChild(postElement)
+    })
+  }
+
+  function editPost(postId) {
+    const post = posts.find((p) => p.id === postId)
+    if (post) {
+      document.getElementById('title').value = post.title
+      document.getElementById('content').value = post.content
+      editingPostId = postId 
+      openPopup() 
+    }
+  }
+
+  function deletePost(postId) {
+    posts = posts.filter((p) => p.id !== postId)
+    renderPosts() 
+  }
+</script>
+
+
+ 
+
+
+<style>
+  .box {
+    width: 100%;
+    position: relative;
+    min-height: 80vh;
+  }
+  .box-btn {
+    height: 40px;
+    margin-top: 20px;
+    width: 100%;
+  }
+  .new-post-btn {
+    padding: 5px 10px;
+    background-color: #b978de;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    float: right;
+  }
+
+  .popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    width: 400px;
+  }
+  .popup h2 {
+    text-align: left;
+  }
+  .popup form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .popup label {
+    margin-bottom: 5px;
+    text-align: left;
+  }
+
+  .popup input,
+  .popup textarea {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .popup textarea {
+    resize: vertical;
+  }
+
+  .popup-buttons {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .popup-buttons button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #b978de;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .popup-buttons button[type='button'] {
+    background-color: #ccc;
+    color: black;
+  }
+
+  .post {
+    margin-bottom: 20px;
+  }
+
+  .post h1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .post h1 span {
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .post-content {
+    width: 80%;
+    text-align: left;
+  }
+
+  .post-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .post-actions button {
+    padding: 5px 10px;
+    background-color: #b978de;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .post-actions button[type='button'] {
+    background-color: #ccc;
+    color: black;
+  }
+
+  .post hr {
+    margin-top: 10px;
+    border: none;
+    border-top: 1px solid #ccc;
+  }
+
+  .post {
+    margin-top: 100px;
+  }
+</style>
+
+
+

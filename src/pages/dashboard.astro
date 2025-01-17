@@ -1,0 +1,88 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+import Header from '../components/Header.astro';
+
+
+
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
+
+
+
+if (!accessToken || !refreshToken) {
+  return Astro.redirect("/signin");
+}
+
+
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+
+  
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  
+  Astro.cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  Astro.cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+  return Astro.redirect("/signin");
+}
+
+
+
+
+const email = session.data.user?.email;
+---
+
+
+
+
+
+<Layout title="dashboard">
+  <Header />
+
+  
+  <h2>Welcome user with email address: {email}</h2>
+  <img src="/welcome.webp" alt="Welcome" />
+  <p>We're glad to see you today</p>
+
+  
+  <form action="/api/auth/signout">
+    <button type="submit">Sign Me Out</button>
+  </form>
+</Layout>
+<style>
+  img{
+    width:auto;
+    height: auto;
+    max-width: 70%;
+    max-height:60%;
+    margin-left: 20px;
+    border-radius:20px;
+  }
+  button {
+     margin-left: 10px;
+     padding: 5px 10px;
+     background-color: #b978de;
+     color: white;
+     border: none;
+     border-radius: 5px;
+     cursor: pointer;
+   }
+ 
+</style>

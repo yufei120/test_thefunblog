@@ -1,0 +1,55 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from '../components/Header.astro';
+---
+
+<Layout title="Register">
+  <Header />
+  <div class="reg" >
+    <h2>Create an Account</h2>
+    <p>Start posting today</p>
+    
+    <form action="/api/auth/register" method="post">
+      <div style="padding-top:10px " >
+        <div>
+          <label for="email" style="margin:15px">Email</label>
+          <input type="email" name="email" id="email" />
+
+        </div>
+        <div style="padding-top:15px">
+          <label for="password">Password</label>
+          <input type="password" name="password" id="password" />
+
+        </div>
+        <div style="padding-top:20px">
+          <button type="submit">Register</button>
+
+        </div>
+        
+
+      </div>
+
+         
+
+  </form>
+  <br/>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+
+  </div>
+
+  
+</Layout>
+<style>
+ button {
+    margin-left: 10px;
+    padding: 5px 15px;
+    background-color: #b978de;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+ 
+
+  
+</style>
